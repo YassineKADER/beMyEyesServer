@@ -1,0 +1,33 @@
+# Compiled Go binaries
+*.exe
+*.dll
+*.so
+*.dylib
+server
+
+# Built Go binary
+/bin/
+
+# Dependency directories (created by `go mod tidy` or `go get`)
+/vendor/
+/go.sum
+
+# Editor-specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary files
+*~
+
+# Log files
+*.log
+
+# Binary files (such as database files)
+*.db
+*.sqlite
+
+# System and application files
+.DS_Store
+Thumbs.db
