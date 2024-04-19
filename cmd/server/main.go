@@ -1,13 +1,29 @@
 package main
 
 import (
-	"log"
+	"fmt"
 
-	"github.com/YassineKADER/beMyEyesServer/internal/server"
+	tf "github.com/wamuir/graft/tensorflow"
+	"github.com/wamuir/graft/tensorflow/op"
 )
 
 func main() {
-	if err := server.NewServer(); err != nil {
-		log.Fatalf("could not start server: %v", err)
+	// Construct a graph with an operation that produces a string constant.
+	s := op.NewScope()
+	c := op.Const(s, "Hello from TensorFlow version "+tf.Version())
+	graph, err := s.Finalize()
+	if err != nil {
+		panic(err)
 	}
+
+	// Execute the graph in a session.
+	sess, err := tf.NewSession(graph, nil)
+	if err != nil {
+		panic(err)
+	}
+	output, err := sess.Run(nil, []tf.Output{c}, nil)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(output[0].Value())
 }
