@@ -3,6 +3,7 @@ package imagenetModel
 import (
 	"archive/zip"
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -10,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	tf "github.com/wamuir/graft/tensorflow"
+	tf "github.com/wamuir/graft/tensorflow" // graft
 	"github.com/wamuir/graft/tensorflow/op"
 )
 
@@ -55,6 +56,26 @@ func (m *Model) Load(modeldir string) error {
 		log.Fatal(err)
 	}
 	return nil
+}
+
+func (m *Model) Match(imagefile string, url bool) string {
+	tensor, err := makeTensorFromImage(imagefile, url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Construct an in-memory graph from the serialized form.
+	probabilities, err := m.session.Run(
+		map[tf.Output]*tf.Tensor{
+			m.graph.Operation("input").Output(0): tensor,
+		},
+		[]tf.Output{
+			m.graph.Operation("output").Output(0),
+		},
+		nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return printBestLabel(probabilities[0].Value().([][]float32)[0], *m)
 }
 
 func (m *Model) Close() {
@@ -154,4 +175,72 @@ func constructGraphToNormalizeImage() (graph *tf.Graph, input, output tf.Output,
 		op.Const(s.SubScope("scale"), Scale))
 	graph, err = s.Finalize()
 	return graph, input, output, err
+}
+
+func printBestLabel(probabilities []float32, m Model) string {
+	bestIdxs := make([]int, 3)
+	copy(bestIdxs, []int{0, 0, 0})
+
+	for i, p := range probabilities {
+		for j := 0; j < 3; j++ {
+			if p > probabilities[bestIdxs[j]] {
+				copy(bestIdxs[j+1:], bestIdxs[j:])
+				bestIdxs[j] = i
+				break
+			}
+		}
+	}
+
+	result := ""
+	for i, idx := range bestIdxs {
+		result += fmt.Sprintf("MATCH %d: (%2.0f%% likely) %s\n", i+1, probabilities[idx]*100.0, m.lablelStrings[idx])
+	}
+
+	return result
+}
+
+// Convert the image in filename to a Tensor suitable as input to the Inception model.
+func makeTensorFromImage(filename string, url bool) (*tf.Tensor, error) {
+	var bytes []byte
+	if url {
+		res, err := http.Get(filename)
+		if err != nil {
+			return nil, errors.New("invalid image url")
+		}
+		defer res.Body.Close()
+		bytes, err = io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.New("invalid image url")
+		}
+	} else {
+		var err error
+		bytes, err = os.ReadFile(filename)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// DecodeJpeg uses a scalar String-valued tensor as input.
+	tensor, err := tf.NewTensor(string(bytes))
+	if err != nil {
+		return nil, err
+	}
+	// Construct a graph to normalize the image
+	graph, input, output, err := constructGraphToNormalizeImage()
+	if err != nil {
+		return nil, err
+	}
+	// Execute that graph to normalize this one image
+	session, err := tf.NewSession(graph, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+	normalized, err := session.Run(
+		map[tf.Output]*tf.Tensor{input: tensor},
+		[]tf.Output{output},
+		nil)
+	if err != nil {
+		return nil, err
+	}
+	return normalized[0], nil
 }

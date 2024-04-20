@@ -2,28 +2,20 @@ package main
 
 import (
 	"fmt"
+	"time"
 
-	tf "github.com/wamuir/graft/tensorflow"
-	"github.com/wamuir/graft/tensorflow/op"
+	imagenetModel "github.com/YassineKADER/beMyEyesServer/internal/imagenet"
 )
 
 func main() {
-	// Construct a graph with an operation that produces a string constant.
-	s := op.NewScope()
-	c := op.Const(s, "Hello from TensorFlow version "+tf.Version())
-	graph, err := s.Finalize()
-	if err != nil {
-		panic(err)
-	}
-
-	// Execute the graph in a session.
-	sess, err := tf.NewSession(graph, nil)
-	if err != nil {
-		panic(err)
-	}
-	output, err := sess.Run(nil, []tf.Output{c}, nil)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(output[0].Value())
+	model := imagenetModel.Model{}
+	startLoad := time.Now()
+	model.Load("modeldir")
+	loadTime := time.Since(startLoad)
+	fmt.Printf("Time to load model: %s\n", loadTime)
+	startMatch := time.Now()
+	label := model.Match("test.jpg", false)
+	matchTime := time.Since(startMatch)
+	fmt.Printf("Time to match: %s\n", matchTime)
+	fmt.Println(label)
 }

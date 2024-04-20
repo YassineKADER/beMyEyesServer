@@ -20,6 +20,7 @@ server
 
 # Temporary files
 *~
+test.jpg
 
 # Log files
 *.log
