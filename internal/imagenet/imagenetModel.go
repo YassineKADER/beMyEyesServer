@@ -20,7 +20,7 @@ type Model struct {
 	graph                  *tf.Graph
 	imageNormalizerGraph   *tf.Graph
 	imageNormalizerSession *tf.Session
-	imageNormalizerInput   tf.Input
+	imageNormalizerInput   tf.Output
 	imageNormalizerOutput  tf.Output
 	lablelStrings          []string
 }
@@ -55,11 +55,15 @@ func (m *Model) Load(modeldir string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
+	m.imageNormalizerSession, err = tf.NewSession(m.imageNormalizerGraph, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return nil
 }
 
 func (m *Model) Match(imagefile string, url bool) string {
-	tensor, err := makeTensorFromImage(imagefile, url)
+	tensor, err := m.makeTensorFromImage(imagefile, url)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -200,7 +204,7 @@ func printBestLabel(probabilities []float32, m Model) string {
 }
 
 // Convert the image in filename to a Tensor suitable as input to the Inception model.
-func makeTensorFromImage(filename string, url bool) (*tf.Tensor, error) {
+func (m *Model) makeTensorFromImage(filename string, url bool) (*tf.Tensor, error) {
 	var bytes []byte
 	if url {
 		res, err := http.Get(filename)
@@ -224,20 +228,10 @@ func makeTensorFromImage(filename string, url bool) (*tf.Tensor, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Construct a graph to normalize the image
-	graph, input, output, err := constructGraphToNormalizeImage()
-	if err != nil {
-		return nil, err
-	}
 	// Execute that graph to normalize this one image
-	session, err := tf.NewSession(graph, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer session.Close()
-	normalized, err := session.Run(
-		map[tf.Output]*tf.Tensor{input: tensor},
-		[]tf.Output{output},
+	normalized, err := m.imageNormalizerSession.Run(
+		map[tf.Output]*tf.Tensor{m.imageNormalizerInput: tensor},
+		[]tf.Output{m.imageNormalizerOutput},
 		nil)
 	if err != nil {
 		return nil, err
