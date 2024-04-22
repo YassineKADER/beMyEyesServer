@@ -7,7 +7,7 @@ import (
 
 func TestImagenetModelLoad(t *testing.T) {
 	model := Model{}
-	model.Load("modeldir")
+	model.Load("./../../modeldir")
 	if model.session == nil {
 		t.Errorf("model.session is nil")
 	}
@@ -24,7 +24,7 @@ func TestImagenetModelLoad(t *testing.T) {
 
 func TestImagenetModelPredict(t *testing.T) {
 	model := Model{}
-	model.Load("modeldir")
+	model.Load("./../../modeldir")
 	prediction := model.Match("https://i.ibb.co/Y2s0WH6/test-dog.jpg", true)
 	if prediction == "" {
 		t.Errorf("prediction is nil")
@@ -34,6 +34,6 @@ func TestImagenetModelPredict(t *testing.T) {
 
 func TestImagenetModelClose(t *testing.T) {
 	model := Model{}
-	model.Load("modeldir")
+	model.Load("./../../modeldir")
 	model.Close()
 }
