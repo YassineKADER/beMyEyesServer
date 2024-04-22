@@ -25,7 +25,11 @@ jobs:
         sudo ldconfig
         echo "/usr/local/lib" | sudo tee -a /etc/ld.so.conf.d/libtensorflow.conf
         sudo ldconfig
-
+    - name: Install Tesseract
+      run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libtesseract-dev libleptonica-dev
+          apt-get install -y -qq tesseract-ocr-eng tesseract-ocr-deu tesseract-ocr-jpn
     - name: Build
       run: go build -v ./...
 
