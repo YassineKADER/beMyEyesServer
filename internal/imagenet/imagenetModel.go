@@ -3,6 +3,7 @@ package imagenetModel
 import (
 	"archive/zip"
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -23,6 +24,12 @@ type Model struct {
 	imageNormalizerInput   tf.Output
 	imageNormalizerOutput  tf.Output
 	lablelStrings          []string
+}
+
+type Match struct {
+	Label       string  `json:"label"`
+	Number      int     `json:"number"`
+	Probability float32 `json:"probability"`
 }
 
 func (m *Model) Load(modeldir string) error {
@@ -62,8 +69,8 @@ func (m *Model) Load(modeldir string) error {
 	return nil
 }
 
-func (m *Model) Match(imagefile string, url bool) string {
-	tensor, err := m.makeTensorFromImage(imagefile, url)
+func (m *Model) Match(imagefile string, url bool, data *[]byte) string {
+	tensor, err := m.makeTensorFromImage(imagefile, url, data)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -181,6 +188,28 @@ func constructGraphToNormalizeImage() (graph *tf.Graph, input, output tf.Output,
 	return graph, input, output, err
 }
 
+// func printBestLabel(probabilities []float32, m Model) string {
+// 	bestIdxs := make([]int, 3)
+// 	copy(bestIdxs, []int{0, 0, 0})
+//
+// 	for i, p := range probabilities {
+// 		for j := 0; j < 3; j++ {
+// 			if p > probabilities[bestIdxs[j]] {
+// 				copy(bestIdxs[j+1:], bestIdxs[j:])
+// 				bestIdxs[j] = i
+// 				break
+// 			}
+// 		}
+// 	}
+//
+// 	result := ""
+// 	for i, idx := range bestIdxs {
+// 		result += fmt.Sprintf("MATCH %d: (%2.0f%% likely) %s\n", i+1, probabilities[idx]*100.0, m.lablelStrings[idx])
+// 	}
+//
+// 	return result
+// }
+
 func printBestLabel(probabilities []float32, m Model) string {
 	bestIdxs := make([]int, 3)
 	copy(bestIdxs, []int{0, 0, 0})
@@ -195,32 +224,45 @@ func printBestLabel(probabilities []float32, m Model) string {
 		}
 	}
 
-	result := ""
+	matches := make([]Match, 3)
 	for i, idx := range bestIdxs {
-		result += fmt.Sprintf("MATCH %d: (%2.0f%% likely) %s\n", i+1, probabilities[idx]*100.0, m.lablelStrings[idx])
+		matches[i] = Match{
+			Number:      i + 1,
+			Probability: probabilities[idx] * 100.0,
+			Label:       m.lablelStrings[idx],
+		}
 	}
 
-	return result
+	jsonData, err := json.Marshal(matches)
+	if err != nil {
+		return ""
+	}
+
+	return string(jsonData)
 }
 
 // Convert the image in filename to a Tensor suitable as input to the Inception model.
-func (m *Model) makeTensorFromImage(filename string, url bool) (*tf.Tensor, error) {
+func (m *Model) makeTensorFromImage(filename string, url bool, data *[]byte) (*tf.Tensor, error) {
 	var bytes []byte
-	if url {
-		res, err := http.Get(filename)
-		if err != nil {
-			return nil, errors.New("invalid image url")
-		}
-		defer res.Body.Close()
-		bytes, err = io.ReadAll(res.Body)
-		if err != nil {
-			return nil, errors.New("invalid image url")
-		}
+	if data != nil && len(*data) > 0 {
+		bytes = *data
 	} else {
-		var err error
-		bytes, err = os.ReadFile(filename)
-		if err != nil {
-			return nil, err
+		if url {
+			res, err := http.Get(filename)
+			if err != nil {
+				return nil, errors.New("invalid image url")
+			}
+			defer res.Body.Close()
+			bytes, err = io.ReadAll(res.Body)
+			if err != nil {
+				return nil, errors.New("invalid image url")
+			}
+		} else {
+			var err error
+			bytes, err = os.ReadFile(filename)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	// DecodeJpeg uses a scalar String-valued tensor as input.

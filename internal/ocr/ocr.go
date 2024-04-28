@@ -8,29 +8,29 @@ import (
 	"github.com/otiai10/gosseract"
 )
 
-type ocr struct {
+type OCR struct {
 	client *gosseract.Client
 }
 
-func (o *ocr) Load() {
+func (o *OCR) Load() {
 	o.client = gosseract.NewClient()
 }
 
-func (o *ocr) Close() {
+func (o *OCR) Close() {
 	o.client.Close()
 }
 
-func (o *ocr) Recognize(imagePath string) (string, error) {
+func (o *OCR) Recognize(imagePath string) (string, error) {
 	o.client.SetImage(imagePath)
 	return o.client.Text()
 }
 
-func (o *ocr) RecognizeFromBytes(imageBytes []byte) (string, error) {
+func (o *OCR) RecognizeFromBytes(imageBytes []byte) (string, error) {
 	o.client.SetImageFromBytes(imageBytes)
 	return o.client.Text()
 }
 
-func (o *ocr) RecognizeFromURL(imageURL string) (string, error) {
+func (o *OCR) RecognizeFromURL(imageURL string) (string, error) {
 	if imageURL != "" {
 		res, err := http.Get(imageURL)
 		if err != nil {
