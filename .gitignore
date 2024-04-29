@@ -3,7 +3,6 @@
 *.dll
 *.so
 *.dylib
-server
 
 # Built Go binary
 /bin/
