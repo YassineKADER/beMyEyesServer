@@ -5,12 +5,24 @@ import (
 
 	"github.com/YassineKADER/beMyEyesServer/internal/config"
 	imagenet "github.com/YassineKADER/beMyEyesServer/internal/imagenet"
+	"github.com/YassineKADER/beMyEyesServer/internal/middleware"
 	"github.com/YassineKADER/beMyEyesServer/internal/ocr"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 )
 
 func Routes(imagenetModel *imagenet.Model, ocrModel *ocr.OCR) *chi.Mux {
 	router := chi.NewRouter()
+	cors := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"}, // Allow all origins
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	})
+	router.Use(cors.Handler)
+	router.Use(middleware.LoggingMiddleware)
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello, world!"))
 	})
