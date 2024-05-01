@@ -13,5 +13,5 @@ func NewServer() error {
 	conf.Load()
 	router := routes.CreateRouter("")
 	fmt.Println("Listening on localhost:" + conf.Port)
-	return http.ListenAndServe("localhost:"+conf.Port, router)
+	return http.ListenAndServe("0.0.0.0:"+conf.Port, router)
 }
