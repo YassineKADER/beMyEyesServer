@@ -59,6 +59,8 @@ func ImagenetHandler(model *imagenet.Model) http.HandlerFunc {
 		}
 
 		result := model.Match("", false, &body)
-		render.JSON(w, r, result)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(result)
+		// render.JSON(w, r, result)
 	}
 }

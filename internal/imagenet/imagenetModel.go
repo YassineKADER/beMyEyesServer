@@ -69,7 +69,7 @@ func (m *Model) Load(modeldir string) error {
 	return nil
 }
 
-func (m *Model) Match(imagefile string, url bool, data *[]byte) string {
+func (m *Model) Match(imagefile string, url bool, data *[]byte) []byte {
 	tensor, err := m.makeTensorFromImage(imagefile, url, data)
 	if err != nil {
 		log.Fatal(err)
@@ -210,7 +210,7 @@ func constructGraphToNormalizeImage() (graph *tf.Graph, input, output tf.Output,
 // 	return result
 // }
 
-func printBestLabel(probabilities []float32, m Model) string {
+func printBestLabel(probabilities []float32, m Model) []byte {
 	bestIdxs := make([]int, 3)
 	copy(bestIdxs, []int{0, 0, 0})
 
@@ -235,10 +235,10 @@ func printBestLabel(probabilities []float32, m Model) string {
 
 	jsonData, err := json.Marshal(matches)
 	if err != nil {
-		return ""
+		return []byte("error")
 	}
 
-	return string(jsonData)
+	return jsonData
 }
 
 // Convert the image in filename to a Tensor suitable as input to the Inception model.

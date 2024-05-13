@@ -30,3 +30,6 @@
 # System and application files
 .DS_Store
 Thumbs.db
+
+.env
+gcp_service_account.json
