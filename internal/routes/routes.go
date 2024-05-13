@@ -7,11 +7,12 @@ import (
 	imagenet "github.com/YassineKADER/beMyEyesServer/internal/imagenet"
 	"github.com/YassineKADER/beMyEyesServer/internal/middleware"
 	"github.com/YassineKADER/beMyEyesServer/internal/ocr"
+	"github.com/YassineKADER/beMyEyesServer/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 )
 
-func Routes(imagenetModel *imagenet.Model, ocrModel *ocr.OCR) *chi.Mux {
+func Routes(imagenetModel *imagenet.Model, ocrModel *ocr.OCR, gemini *utils.GeminiModel) *chi.Mux {
 	router := chi.NewRouter()
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"}, // Allow all origins
@@ -29,6 +30,7 @@ func Routes(imagenetModel *imagenet.Model, ocrModel *ocr.OCR) *chi.Mux {
 	router.Route("/v1", func(r chi.Router) {
 		r.Mount("/api/imagenet", imagenetRoute(imagenetModel))
 		r.Mount("/api/ocr", ocrRoute(ocrModel))
+		r.Mount("/api/gemini", geminiRoute(imagenetModel, ocrModel, gemini))
 	})
 	return router
 }
@@ -36,14 +38,16 @@ func Routes(imagenetModel *imagenet.Model, ocrModel *ocr.OCR) *chi.Mux {
 func CreateRouter(modeldir string) *chi.Mux {
 	model := imagenet.Model{}
 	ocr := ocr.OCR{}
+	gemini := utils.GeminiModel{}
 	if modeldir == "" {
 		modeldir = "./modeldir"
 	}
 	model.Load(modeldir)
 	ocr.Load()
+	gemini.LoadModel("models/gemini-pro")
 	var conf config.Config
 	conf.Load()
-	router := Routes(&model, &ocr)
+	router := Routes(&model, &ocr, &gemini)
 	// defer ocr.Close()
 	// defer model.Close()
 	return router

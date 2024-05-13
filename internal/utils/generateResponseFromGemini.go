@@ -27,7 +27,7 @@ func (gm *GeminiModel) LoadModel(name string) {
 }
 
 func (gm *GeminiModel) GenerateResponse(prompt string) string {
-	prompt = "Your task is to identify the most likely object and describe it in simple terms please combain the 3 objects, and the data from ocr text and find commun thing and tell me what this object can be, if the text was too long just talk about this text and what it's content. For instance, Keep the description short and clear, suitable for helping blind individuals understand what the object might be" + prompt + "\n"
+	prompt = "Your task is to identify the most likely object and describe it in simple terms please combain the 3 objects, and the data from ocr text and find commun thing and tell me what this object can be, if the text was too long just talk about this text and what it's content, if no text provided or with text without meaning please use just the data related to image detection to tell what this object can be. For instance, Keep the description short and clear, suitable for helping blind individuals understand what the object might be" + prompt + "\n"
 	output, err := gm.model.GenerateContent(gm.context, genai.Text(prompt))
 	if err != nil {
 		return ""
