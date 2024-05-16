@@ -1,13 +1,32 @@
-#Todo: Test the dockerfile
+# Use the Ubuntu 22.04 base image
+FROM ubuntu:22.04
 
-# Start from the latest golang base image
-FROM golang:1.22.1
-
-# Add Maintainer Info
-LABEL maintainer="EROS <yassinekader.contact@gmail.com>"
-
-# Set the Current Working Directory inside the container
+# Set the working directory
 WORKDIR /app
+
+# Install necessary packages
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    ca-certificates \
+    wget \
+    tar \
+    && add-apt-repository ppa:ubuntu-toolchain-r/test \
+    && apt-get install -y \
+    gcc-11 \
+    g++-11 \
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 --slave /usr/bin/g++ g++ /usr/bin/g++-11 \
+    && update-alternatives --config gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Go
+ENV GO_VERSION=1.22.1
+RUN wget https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz \
+    && rm go${GO_VERSION}.linux-amd64.tar.gz
+
+# Set environment variables
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV GOPATH="/go"
 
 # Copy go mod and sum files
 COPY go.mod go.sum ./
@@ -22,17 +41,19 @@ COPY . .
 RUN apt-get update && apt-get install -y \
     wget \
     tar \
+    && wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.15.0.tar.gz \
+    && tar -C /usr/local -xzf libtensorflow-cpu-linux-x86_64-2.15.0.tar.gz \
+    && ldconfig \
+    && echo "/usr/local/lib" | tee -a /etc/ld.so.conf.d/libtensorflow.conf \
+    && ldconfig \
+    && apt-get install -y \
     libtesseract-dev \
     libleptonica-dev \
     tesseract-ocr-eng \
     tesseract-ocr-deu \
     tesseract-ocr-jpn \
- && rm -rf /var/lib/apt/lists/* \
- && wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.15.0.tar.gz \
- && tar -C /usr/local -xzf libtensorflow-cpu-linux-x86_64-2.15.0.tar.gz \
- && ldconfig \
- && echo "/usr/local/lib" | tee -a /etc/ld.so.conf.d/libtensorflow.conf \
- && ldconfig
+    tesseract-ocr-ara \
+    && rm -rf /var/lib/apt/lists/*
 
 # Build the Go app
 RUN go build ./cmd/server

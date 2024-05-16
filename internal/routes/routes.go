@@ -12,7 +12,7 @@ import (
 	"github.com/go-chi/cors"
 )
 
-func Routes(imagenetModel *imagenet.Model, ocrModel *ocr.OCR, gemini *utils.GeminiModel) *chi.Mux {
+func Routes(imagenetModel *imagenet.Model, ocrModel *ocr.OCR, gemini *utils.GeminiModel, geminiVision *utils.GeminiModel) *chi.Mux {
 	router := chi.NewRouter()
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"}, // Allow all origins
@@ -30,7 +30,7 @@ func Routes(imagenetModel *imagenet.Model, ocrModel *ocr.OCR, gemini *utils.Gemi
 	router.Route("/v1", func(r chi.Router) {
 		r.Mount("/api/imagenet", imagenetRoute(imagenetModel))
 		r.Mount("/api/ocr", ocrRoute(ocrModel))
-		r.Mount("/api/gemini", geminiRoute(imagenetModel, ocrModel, gemini))
+		r.Mount("/api/gemini", geminiRoute(imagenetModel, ocrModel, gemini, geminiVision))
 	})
 	return router
 }
@@ -39,15 +39,17 @@ func CreateRouter(modeldir string) *chi.Mux {
 	model := imagenet.Model{}
 	ocr := ocr.OCR{}
 	gemini := utils.GeminiModel{}
+	geminiVision := utils.GeminiModel{}
 	if modeldir == "" {
 		modeldir = "./modeldir"
 	}
 	model.Load(modeldir)
 	ocr.Load()
-	gemini.LoadModel("models/gemini-pro")
+	gemini.LoadModel("gemini-pro")
+	geminiVision.LoadModel("gemini-pro-vision")
 	var conf config.Config
 	conf.Load()
-	router := Routes(&model, &ocr, &gemini)
+	router := Routes(&model, &ocr, &gemini, &geminiVision)
 	// defer ocr.Close()
 	// defer model.Close()
 	return router

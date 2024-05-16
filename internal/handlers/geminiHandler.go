@@ -58,8 +58,9 @@ func GeminiHandler(model *imagenet.Model, ocrInstance *ocr.OCR, gemini *utils.Ge
 		w.Header().Set("Content-Type", "application/json")
 		result := map[string]string{"image": string(imgresult), "ocr": string(ocrresult)}
 		strResult := fmt.Sprintf("%v", result)
-		// fmt.Println(strResult)
+		fmt.Println(strResult)
 		response := gemini.GenerateResponse(strResult)
+		fmt.Println(response)
 		responseMap := map[string]string{"response": response}
 		jsonData, err := json.Marshal(responseMap)
 		if err != nil {

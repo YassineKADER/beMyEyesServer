@@ -37,10 +37,18 @@ func (gm *GeminiModel) GenerateResponse(prompt string) string {
 
 func (gm *GeminiModel) GenerateResponseFromPicture(img []byte) string {
 	prompt := []genai.Part{
-		genai.ImageData("jpg", img),
+		genai.ImageData("jpeg", img),
 		genai.Text("describe what in the picture for guid a blind user of our app"),
 	}
 	output, err := gm.model.GenerateContent(gm.context, prompt...)
+	if err != nil {
+		return ""
+	}
+	return formatResponse(output)
+}
+
+func (gm *GeminiModel) GenerateResponseForQuestion(prompt string) string {
+	output, err := gm.model.GenerateContent(gm.context, genai.Text(prompt))
 	if err != nil {
 		return ""
 	}
