@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -48,7 +49,9 @@ func StsHandler(gemini *utils.GeminiModel) http.HandlerFunc {
 		}
 
 		result := utils.SpeakToText(body)
+		fmt.Println(result)
 		response := gemini.GenerateResponseForQuestion(result)
+		fmt.Println(response)
 		responseMap := map[string]string{"response": response}
 		jsonData, err := json.Marshal(responseMap)
 		if err != nil {

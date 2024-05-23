@@ -47,7 +47,9 @@ func (gm *GeminiModel) GenerateResponseFromPicture(img []byte) string {
 	return formatResponse(output)
 }
 
+// TODO implement the chat instead of generate content
 func (gm *GeminiModel) GenerateResponseForQuestion(prompt string) string {
+	prompt += "this question is extracted from an audio, the user is blinded please give him a clear and simple answer, text:" + "\n" + prompt
 	output, err := gm.model.GenerateContent(gm.context, genai.Text(prompt))
 	if err != nil {
 		return ""

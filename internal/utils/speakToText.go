@@ -17,9 +17,10 @@ func SpeakToText(data []byte) string {
 	}
 	resp, err := client.Recognize(context, &speechpb.RecognizeRequest{
 		Config: &speechpb.RecognitionConfig{
-			Encoding:        speechpb.RecognitionConfig_LINEAR16,
-			SampleRateHertz: 16000,
-			LanguageCode:    "en-US",
+			Encoding:                            speechpb.RecognitionConfig_MP3,
+			LanguageCode:                        "en-US",
+			AudioChannelCount:                   2,
+			EnableSeparateRecognitionPerChannel: false,
 		},
 		Audio: &speechpb.RecognitionAudio{
 			AudioSource: &speechpb.RecognitionAudio_Content{Content: data},

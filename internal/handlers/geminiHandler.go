@@ -17,6 +17,7 @@ func GeminiHandler(model *imagenet.Model, ocrInstance *ocr.OCR, gemini *utils.Ge
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body []byte
 		var err error
+		// var history []string
 
 		// Check the Content-Type of the request
 		if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
@@ -34,6 +35,7 @@ func GeminiHandler(model *imagenet.Model, ocrInstance *ocr.OCR, gemini *utils.Ge
 				return
 			}
 			defer file.Close()
+			// history = r.Form["history"]
 
 			// Read the file data
 			body, err = io.ReadAll(file)
