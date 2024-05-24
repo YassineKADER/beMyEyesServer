@@ -1,7 +1,11 @@
 name: Deploy to Cloud Run
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - "Go"
+    types:
+      - completed
     branches: ["main","dev"]
 
 env:
