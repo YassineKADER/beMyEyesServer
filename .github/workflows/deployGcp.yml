@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["Go"]
     types: [completed]
-    branches: ["main","dev"]
+    branches: ["main"]
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
