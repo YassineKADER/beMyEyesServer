@@ -33,6 +33,7 @@ jobs:
 
     - name: Build and Push Docker Image
       run: |-
+        gcloud auth configure-docker
         docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }} .
         docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
 
