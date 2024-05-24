@@ -27,8 +27,8 @@ func TestImagenetModelPredictUrl(t *testing.T) {
 	model := Model{}
 	model.Load("./../../modeldir")
 	defer model.Close()
-	prediction := model.Match("https://i.ibb.co/Y2s0WH6/test-dog.jpg", true)
-	if prediction == "" {
+	prediction := model.Match("https://i.ibb.co/Y2s0WH6/test-dog.jpg", true, nil)
+	if len(prediction) == 0 {
 		t.Errorf("prediction is nil")
 	}
 	fmt.Println(prediction)
@@ -38,8 +38,8 @@ func TestImagenetModelPredict(t *testing.T) {
 	model := Model{}
 	model.Load("./../../modeldir")
 	defer model.Close()
-	prediction := model.Match("./../../testdata/test.jpg", false)
-	if prediction == "" {
+	prediction := model.Match("./../../testdata/test.jpg", false, nil)
+	if len(prediction) == 0 {
 		t.Errorf("prediction is nil")
 	}
 	fmt.Println(prediction)

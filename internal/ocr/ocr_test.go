@@ -6,7 +6,7 @@ import (
 )
 
 func TestOcrLoad(t *testing.T) {
-	o := ocr{}
+	o := OCR{}
 	o.Load()
 	defer o.Close()
 	if o.client == nil {
@@ -15,7 +15,7 @@ func TestOcrLoad(t *testing.T) {
 }
 
 func TestOcrRecognize(t *testing.T) {
-	o := ocr{}
+	o := OCR{}
 	o.Load()
 	defer o.Close()
 	text, err := o.Recognize("./../../testdata/test_ocr.jpg")
@@ -28,7 +28,7 @@ func TestOcrRecognize(t *testing.T) {
 }
 
 func TestOcrRecognizeFromBytes(t *testing.T) {
-	o := ocr{}
+	o := OCR{}
 	o.Load()
 	defer o.Close()
 	bytes, _ := os.ReadFile("./../../testdata/test_ocr.jpg")
