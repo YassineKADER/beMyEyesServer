@@ -32,8 +32,6 @@ jobs:
         GITHUB_SHA: ${{ github.sha }}
       run: |
         gcloud auth configure-docker
-        #echo ${{ secrets.SERVICE_ACCOUNT_TRANSCRIPTION }} > gcp_service_account.json
-        #echo ${{ secrets.ENV_FILE }} > .env
         docker build -t gcr.io/${PROJECT_ID}/${SERVICE_NAME}:${GITHUB_SHA} .
         docker push gcr.io/${PROJECT_ID}/${SERVICE_NAME}:${GITHUB_SHA}
 
