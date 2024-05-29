@@ -1,9 +1,9 @@
 name: Deploy to Cloud Run
 
 on:
-  workflow_run:
-    workflows: ["Go"]
-    types: [completed]
+  push:
+    branches: ["main"]
+  pull_request:
     branches: ["main"]
 
 env:
@@ -36,6 +36,8 @@ jobs:
     - name: Build and Push Docker Image
       run: |-
         gcloud auth configure-docker
+        echo ${{ secrets.SERVICE_ACCOUNT_TRANSCRIPTION }} > gcp_service_account.json
+        echo ${{ secrets.ENV_FILE }} > .env
         docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }} .
         docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
 
