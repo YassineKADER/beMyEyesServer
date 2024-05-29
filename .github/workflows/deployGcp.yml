@@ -10,6 +10,8 @@ env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GAR_LOCATION: us-central1
   SERVICE_NAME: bemyeyes-backend
+  ENV_FILE: ${{ secrets.ENV_FILE }}
+  SERVICE_ACCOUNT_TRANSCRIPTION: ${{ secrets.SERVICE_ACCOUNT_TRANSCRIPTION }}
 
 jobs:
   deploy:
@@ -32,6 +34,8 @@ jobs:
         GITHUB_SHA: ${{ github.sha }}
       run: |
         gcloud auth configure-docker
+        echo "$SERVICE_ACCOUNT_TRANSCRIPTION" > gcp_service_account.json
+        echo "$ENV_FILE" > .env
         docker build -t gcr.io/${PROJECT_ID}/${SERVICE_NAME}:${GITHUB_SHA} .
         docker push gcr.io/${PROJECT_ID}/${SERVICE_NAME}:${GITHUB_SHA}
 
